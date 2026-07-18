@@ -572,34 +572,27 @@ function App() {
             <section className="hero">
               <h2 className="hero__title">Your library, <em>minus the doubles.</em></h2>
               <p className="hero__sub">Scan your Google Photos, review the duplicates and look-alikes we find, and clear the clutter — one keeper stays, every time.</p>
+              <button type="button" className="btn btn--primary btn--hero" onClick={handleScan}>
+                <IconScan size={22} /> Scan my photos
+              </button>
               <p className="hero__reassure">Free &amp; private — photos are compared on your own computer. Nothing is deleted until you say so, and deletions go to your Google Photos trash (recoverable for 60 days).</p>
-
-              <div className="demo" role="img" aria-label="Animation: three duplicate photos are grouped, one is kept, and the extras are removed, leaving a single photo.">
-                <div className="demo__stage" aria-hidden="true">
-                  <div className="demo__tile extra e1" />
-                  <div className="demo__tile keeper"><span className="demo__badge"><IconCheck size={15} /></span></div>
-                  <div className="demo__tile extra e2" />
-                  <span className="demo__pill">Deleted ✓</span>
-                </div>
-                <p className="demo__caption" aria-hidden="true">Keep one — delete the rest.</p>
-              </div>
             </section>
 
-            {/* Get started — two one-time installs + scan, front and center */}
+            {/* The two one-time installs, right below the scan button */}
             <section className="start" aria-labelledby="start-title">
               <div className="start__head">
-                <p className="eyebrow">Get started</p>
-                <h2 id="start-title" className="start__title">Two quick installs, then scan</h2>
-                <p className="start__sub">Both are free and one-time. You'll need them before your first scan — each has a 30-second setup below the button.</p>
+                <p className="eyebrow">First time here?</p>
+                <h2 id="start-title" className="start__title">Install these two before your first scan</h2>
+                <p className="start__sub">Both are free and one-time — setup takes a couple of minutes.</p>
               </div>
 
-              <ol className="start__grid">
-                <li className="start-card">
+              <div className="start__grid">
+                <div className="start-card">
                   <div className="start-card__head">
                     <span className="start-card__num">1</span>
                     <span className="start-card__badge" aria-hidden="true"><IconDownload size={20} /></span>
                   </div>
-                  <h3 className="start-card__title">Install the app</h3>
+                  <h3 className="start-card__title">The app</h3>
                   <p className="start-card__desc">A small app that runs on your computer and does the scanning. Your photos never leave your machine except to Google.</p>
                   <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-helper.zip`} download>
                     <IconDownload size={17} /> Download the app
@@ -613,14 +606,14 @@ function App() {
                       <li>The first launch sets things up (a few minutes, once). Leave the window open, then sign in when you scan.</li>
                     </ol>
                   </details>
-                </li>
+                </div>
 
-                <li className="start-card">
+                <div className="start-card">
                   <div className="start-card__head">
                     <span className="start-card__num">2</span>
                     <span className="start-card__badge" aria-hidden="true"><IconPuzzle size={20} /></span>
                   </div>
-                  <h3 className="start-card__title">Add the extension</h3>
+                  <h3 className="start-card__title">The extension</h3>
                   <p className="start-card__desc">A small Chrome add-on that moves the copies you pick to your Google Photos trash. Needed only for deleting.</p>
                   <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-extension.zip`} download>
                     <IconDownload size={17} /> Download the extension
@@ -634,22 +627,19 @@ function App() {
                       <li>Click <b>Load unpacked</b> and pick the unzipped folder. Leave it enabled.</li>
                     </ol>
                   </details>
-                </li>
-
-                <li className="start-card start-card--go">
-                  <div className="start-card__head">
-                    <span className="start-card__num">3</span>
-                    <span className="start-card__badge" aria-hidden="true"><IconScan size={20} /></span>
-                  </div>
-                  <h3 className="start-card__title">Scan your photos</h3>
-                  <p className="start-card__desc">With the app running, hit scan — pick up to 2,000 photos and we'll group the duplicates and look-alikes for you.</p>
-                  <button type="button" className="btn btn--primary start-card__cta" onClick={handleScan}>
-                    <IconScan size={17} /> Scan my photos
-                  </button>
-                  <p className="start-card__note">Already set up? Start here.</p>
-                </li>
-              </ol>
+                </div>
+              </div>
             </section>
+
+            <div className="demo" role="img" aria-label="Animation: three duplicate photos are grouped, one is kept, and the extras are removed, leaving a single photo.">
+              <div className="demo__stage" aria-hidden="true">
+                <div className="demo__tile extra e1" />
+                <div className="demo__tile keeper"><span className="demo__badge"><IconCheck size={15} /></span></div>
+                <div className="demo__tile extra e2" />
+                <span className="demo__pill">Deleted ✓</span>
+              </div>
+              <p className="demo__caption" aria-hidden="true">Keep one — delete the rest.</p>
+            </div>
 
             {/* Secondary detail — collapsed by default to keep the page light */}
             <section className="learn" aria-label="More detail">

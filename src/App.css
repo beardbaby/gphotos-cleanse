@@ -239,6 +239,9 @@ body {
 
 .btn--lg { --_pad-y: 16px; --_pad-x: 34px; --_fs: 16px; }
 .btn--sm { --_pad-y: 9px;  --_pad-x: 18px; --_fs: 13px; min-height: 40px; }
+.btn--hero { --_pad-y: 21px; --_pad-x: 50px; --_fs: 18.5px; min-height: 62px; gap: 11px; }
+.btn--primary.btn--hero { box-shadow: var(--glow-accent-strong), var(--sh-2); }
+.btn--primary.btn--hero:hover { box-shadow: 0 10px 30px var(--accent-ring), var(--sh-3); }
 
 /* icon buttons */
 .icon-btn {
@@ -381,13 +384,13 @@ body {
 .install-steps li:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 32px; bottom: 4px; width: 2px; background: var(--border-strong); }
 .install-steps b { color: var(--text); font-weight: 700; }
 
-/* ---- get-started (idle: two installs + scan, front and center) ---- */
-.start { margin: 44px auto 0; max-width: 1080px; }
-.start__head { text-align: center; margin-bottom: 26px; }
-.start__title { font-size: clamp(22px, 3.4vw, 28px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px; color: var(--text); }
-.start__sub { font-size: 14.5px; color: var(--text-soft); line-height: 1.6; margin: 0 auto; max-width: 480px; }
+/* ---- get-started (idle: the two one-time installs, below the scan button) ---- */
+.start { margin: 46px auto 0; max-width: 760px; }
+.start__head { text-align: center; margin-bottom: 24px; }
+.start__title { font-size: clamp(20px, 3.2vw, 25px); font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px; color: var(--text); }
+.start__sub { font-size: 14px; color: var(--text-soft); line-height: 1.6; margin: 0 auto; max-width: 440px; }
 
-.start__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+.start__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: stretch; }
 
 .start-card {
   display: flex; flex-direction: column;
@@ -622,7 +625,7 @@ body {
 @keyframes demoPill { 0%,64%{opacity:0; transform:translateX(-50%) translateY(6px);} 78%,92%{opacity:1; transform:translateX(-50%) translateY(0);} 100%{opacity:0; transform:translateX(-50%) translateY(6px);} }
 
 /* ------------------------------------------------------------------ responsive */
-@media (max-width: 860px) {
+@media (max-width: 600px) {
   .start__grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
