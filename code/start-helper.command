@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Duplicate Finder — helper launcher (macOS)
-# Double-click this file to start the local helper. The first run installs
-# everything it needs (a few minutes, ~1 GB); later runs start quickly.
+# Start the helper by running this from Terminal (this avoids the macOS security
+# prompt that a double-click would trigger):
 #
-# If macOS blocks it ("unidentified developer"), right-click the file → Open,
-# then click Open in the dialog. You only need to do that once.
+#   bash ~/Downloads/duplicate-finder-helper/start-helper.command
+#
+# (Adjust the path if you unzipped somewhere other than Downloads.)
+# The first run installs everything it needs (a few minutes, ~1 GB); later runs
+# start quickly.
 
 set -euo pipefail
 cd "$(dirname "$0")"

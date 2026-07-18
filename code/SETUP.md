@@ -18,10 +18,21 @@ You set this up once. It takes a few minutes.
 
 Open the `duplicate-finder-helper` folder and double-click:
 
-- **Mac:** `start-helper.command`
-  - The first time, macOS may say it's from an unidentified developer.
-    **Right-click the file → Open**, then click **Open** in the dialog. You only
-    do this once.
+- **Mac:** run it from **Terminal** — this avoids the macOS security prompt entirely.
+  1. Open **Terminal** (press ⌘-Space, type `Terminal`, press Enter).
+  2. Paste this and press Enter:
+
+     ```
+     bash ~/Downloads/duplicate-finder-helper/start-helper.command
+     ```
+
+     (That's the path if you unzipped into **Downloads**. If it's elsewhere, just
+     type `bash ` — with a space — then drag the `start-helper.command` file onto
+     the Terminal window so its location fills in, and press Enter.)
+
+  *Why Terminal? A double-clicked script gets blocked by macOS as "unverified";
+  running it through Terminal doesn't, so there's no scary prompt. The file is
+  the same either way.*
 - **Windows:** `start-helper.bat`
 
 The **first run installs everything it needs** (a few minutes, ~1 GB — only once).

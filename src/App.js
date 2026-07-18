@@ -607,7 +607,7 @@ function App() {
                     <summary>How to install</summary>
                     <ol className="mini-steps">
                       <li>Unzip it — you'll get a <code>duplicate-finder-helper</code> folder. Keep it somewhere permanent.</li>
-                      <li>Double-click <code>start-helper.command</code> (Mac) or <code>start-helper.bat</code> (Windows). On Mac, right-click → <b>Open</b> the first time.</li>
+                      <li><b>Windows:</b> double-click <code>start-helper.bat</code>. <b>Mac:</b> open Terminal and run <code>bash ~/Downloads/duplicate-finder-helper/start-helper.command</code> (running it from Terminal avoids the macOS security prompt).</li>
                       <li>The first launch sets things up (a few minutes, once). Leave the window open, then sign in when you scan.</li>
                     </ol>
                   </details>
