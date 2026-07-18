@@ -11,6 +11,16 @@
 # production
 /build
 
+# extension signing key — KEEP PRIVATE, never commit (used only to pack/publish
+# the extension later; the public half lives in the extension's manifest "key")
+extension-signing-key.pem
+
+# Google auth — NEVER commit. token.json is personal (per user); credentials.json
+# is your OAuth client (share it with friends privately, not in a public repo).
+code/token.json
+code/credentials.json
+code/__pycache__/
+
 # misc
 .DS_Store
 .env.local

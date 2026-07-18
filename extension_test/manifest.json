@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8tYvFDYb/ormfZtWYFxeIg/1cYbFMRGxdpXfFncviS+qPZbPUmA35NVLqiyXFqDvzoGDiyuwk8Rao7TmnchY64Os7Wqe7y5NPgyRkZCio/BGl0R7sgsiRxiduxSMt5m6k+e9gKvDlanJ3UhXFAfWVm6ofR8yQ8uPK/Tsybpkbdro68AEa5wSCkfEwAndnGyw9qOlGA1V7S92CnHJ327PNxnUm8T29pgPYAjcQckIlsJq8IW6xGVG6xPafSDDJcLOpijXaWajYTB3o/F4EpFXt5rphJEPXmXsuix3T69DnZ60xJ6SS1PrBMM4+ywYCx5eGpZXOmNtYRxR5MceIEm71QIDAQAB",
+  "name": "Google Photos Deleter",
+  "version": "1.0",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": ["https://photos.google.com/*"],
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*"]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://photos.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
