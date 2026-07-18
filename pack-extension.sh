@@ -7,10 +7,12 @@
 #
 set -euo pipefail
 
-# Path to the extension source folder. Override with:  EXT_SRC=/path bash pack-extension.sh
-EXT_SRC="${EXT_SRC:-/Users/sanju/extension_test copy}"
-
 HERE="$(cd "$(dirname "$0")" && pwd)"
+
+# Path to the extension source folder. Defaults to the copy tracked in this repo.
+# Override with:  EXT_SRC=/path bash pack-extension.sh
+EXT_SRC="${EXT_SRC:-$HERE/extension_test}"
+
 DEST="$HERE/public/duplicate-finder-extension.zip"
 TMP="$(mktemp -d)"
 STAGE="$TMP/duplicate-finder-extension"

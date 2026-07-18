@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": ["https://photos.google.com/*"],
   "externally_connectable": {
-    "matches": ["http://localhost:3000/*"]
+    "matches": ["https://gphotos-cleanse.vercel.app/*", "http://localhost:3000/*"]
   },
   "background": {
     "service_worker": "background.js"

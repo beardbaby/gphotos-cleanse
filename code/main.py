@@ -9,9 +9,12 @@ from auth2 import authenticate
 
 app = FastAPI()
 
-# Allowed frontend origins. Set FRONTEND_ORIGINS (comma-separated) in production,
-# e.g. "https://yourdomain.com". Defaults to the local dev server.
-_origins = os.environ.get("FRONTEND_ORIGINS", "http://localhost:3000")
+# Allowed frontend origins. The hosted site is the default so the helper works
+# out of the box for end users; localhost stays allowed for local development.
+# Override with FRONTEND_ORIGINS (comma-separated) if you deploy to a different URL.
+# ---- CHANGE THIS if your Vercel URL is not gphotos-cleanse.vercel.app ----
+_DEFAULT_ORIGINS = "https://gphotos-cleanse.vercel.app,http://localhost:3000"
+_origins = os.environ.get("FRONTEND_ORIGINS", _DEFAULT_ORIGINS)
 allow_origins = [o.strip() for o in _origins.split(",") if o.strip()]
 
 app.add_middleware(

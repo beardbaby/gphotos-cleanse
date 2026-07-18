@@ -5,6 +5,14 @@
 /.pnp
 .pnp.js
 
+# python helper environment (created on each user's machine by start-helper)
+code/.venv/
+
+# helper download bundles code/credentials.json — NEVER commit it to a public
+# repo. Build it with `bash pack-helper.sh` and host it privately (GitHub Release
+# or a private repo). See DEPLOY.md.
+public/duplicate-finder-helper.zip
+
 # testing
 /coverage
 

@@ -572,10 +572,7 @@ function App() {
             <section className="hero">
               <h2 className="hero__title">Your library, <em>minus the doubles.</em></h2>
               <p className="hero__sub">Scan your Google Photos, review the duplicates and look-alikes we find, and clear the clutter — one keeper stays, every time.</p>
-              <button type="button" className="btn btn--primary btn--lg" onClick={handleScan}>
-                <IconScan size={18} /> Scan my photos
-              </button>
-              <p className="hero__reassure">Nothing is deleted until you say so. Deletions go to your Google Photos trash, so they're recoverable.</p>
+              <p className="hero__reassure">Free &amp; private — photos are compared on your own computer. Nothing is deleted until you say so, and deletions go to your Google Photos trash (recoverable for 60 days).</p>
 
               <div className="demo" role="img" aria-label="Animation: three duplicate photos are grouped, one is kept, and the extras are removed, leaving a single photo.">
                 <div className="demo__stage" aria-hidden="true">
@@ -588,61 +585,119 @@ function App() {
               </div>
             </section>
 
-            <section className="how" aria-labelledby="how-title">
-              <p className="eyebrow">How it works</p>
-              <h2 className="how__title" id="how-title">Six steps to a cleaner library</h2>
-              <ol className="steps">
-                {STEPS.map((s, i) => (
-                  <li className="step" key={i}>
-                    <span className="step__num" aria-hidden="true">{i + 1}</span>
-                    <h3 className="step__title">{s.title}</h3>
-                    <p className="step__desc">{s.desc}</p>
-                  </li>
-                ))}
+            {/* Get started — two one-time installs + scan, front and center */}
+            <section className="start" aria-labelledby="start-title">
+              <div className="start__head">
+                <p className="eyebrow">Get started</p>
+                <h2 id="start-title" className="start__title">Two quick installs, then scan</h2>
+                <p className="start__sub">Both are free and one-time. You'll need them before your first scan — each has a 30-second setup below the button.</p>
+              </div>
+
+              <ol className="start__grid">
+                <li className="start-card">
+                  <div className="start-card__head">
+                    <span className="start-card__num">1</span>
+                    <span className="start-card__badge" aria-hidden="true"><IconDownload size={20} /></span>
+                  </div>
+                  <h3 className="start-card__title">Install the app</h3>
+                  <p className="start-card__desc">A small app that runs on your computer and does the scanning. Your photos never leave your machine except to Google.</p>
+                  <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-helper.zip`} download>
+                    <IconDownload size={17} /> Download the app
+                  </a>
+                  <p className="start-card__note">Mac &amp; Windows · keep it open while you scan</p>
+                  <details className="start-card__more">
+                    <summary>How to install</summary>
+                    <ol className="mini-steps">
+                      <li>Unzip it — you'll get a <code>duplicate-finder-helper</code> folder. Keep it somewhere permanent.</li>
+                      <li>Double-click <code>start-helper.command</code> (Mac) or <code>start-helper.bat</code> (Windows). On Mac, right-click → <b>Open</b> the first time.</li>
+                      <li>The first launch sets things up (a few minutes, once). Leave the window open, then sign in when you scan.</li>
+                    </ol>
+                  </details>
+                </li>
+
+                <li className="start-card">
+                  <div className="start-card__head">
+                    <span className="start-card__num">2</span>
+                    <span className="start-card__badge" aria-hidden="true"><IconPuzzle size={20} /></span>
+                  </div>
+                  <h3 className="start-card__title">Add the extension</h3>
+                  <p className="start-card__desc">A small Chrome add-on that moves the copies you pick to your Google Photos trash. Needed only for deleting.</p>
+                  <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-extension.zip`} download>
+                    <IconDownload size={17} /> Download the extension
+                  </a>
+                  <p className="start-card__note">Chrome, Edge, Brave &amp; Arc</p>
+                  <details className="start-card__more">
+                    <summary>How to install</summary>
+                    <ol className="mini-steps">
+                      <li>Unzip it — you'll get a <code>duplicate-finder-extension</code> folder. Keep it somewhere permanent.</li>
+                      <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top-right).</li>
+                      <li>Click <b>Load unpacked</b> and pick the unzipped folder. Leave it enabled.</li>
+                    </ol>
+                  </details>
+                </li>
+
+                <li className="start-card start-card--go">
+                  <div className="start-card__head">
+                    <span className="start-card__num">3</span>
+                    <span className="start-card__badge" aria-hidden="true"><IconScan size={20} /></span>
+                  </div>
+                  <h3 className="start-card__title">Scan your photos</h3>
+                  <p className="start-card__desc">With the app running, hit scan — pick up to 2,000 photos and we'll group the duplicates and look-alikes for you.</p>
+                  <button type="button" className="btn btn--primary start-card__cta" onClick={handleScan}>
+                    <IconScan size={17} /> Scan my photos
+                  </button>
+                  <p className="start-card__note">Already set up? Start here.</p>
+                </li>
               </ol>
-
-              <div className="callout">
-                <span className="callout__icon"><IconLayers size={20} /></span>
-                <div>
-                  <p className="callout__title">Got more than 2,000 photos?</p>
-                  <p className="callout__body">Google Photos lets us pick up to <b>2,000 photos per scan</b>. To clean a larger library, work in batches: scan your first 2,000, delete the duplicates, then hit <b>Scan my photos</b> again and pick the next 2,000. Repeat until you've covered everything.</p>
-                  <p className="callout__tip">Tip: go album by album, or oldest-to-newest, so you always know where you left off.</p>
-                </div>
-              </div>
-
-              <div className="callout callout--time">
-                <span className="callout__icon"><IconClock size={20} /></span>
-                <div>
-                  <p className="callout__title">Deletion runs hands-free — leave it be</p>
-                  <p className="callout__body">Each photo is removed one at a time in the background, so a large batch can take a while. Once it starts, <b>don't touch your computer</b> — no clicking, switching tabs, or letting it sleep — until it finishes, or some photos may be skipped.</p>
-                  <p className="callout__tip">Deleting a big batch? Kick it off before bed and let it run overnight.</p>
-                </div>
-              </div>
             </section>
 
-            <section className="setup" aria-labelledby="setup-title">
-              <div className="setup__card">
-                <div className="setup__head">
-                  <span className="setup__badge" aria-hidden="true"><IconPuzzle size={22} /></span>
-                  <p className="eyebrow">One-time setup</p>
-                  <h2 id="setup-title" className="setup__title">Install the deletion helper</h2>
-                  <p className="setup__lead">Finding duplicates works right away. To actually <b>delete</b> them, add our small Chrome extension — it moves the photos you pick to your Google Photos trash. You only do this once.</p>
-                  <a className="btn btn--primary btn--lg" href={`${process.env.PUBLIC_URL}/duplicate-finder-extension.zip`} download>
-                    <IconDownload size={18} /> Download the extension
-                  </a>
-                  <p className="setup__note">Works in Chrome and Chrome-based browsers (Edge, Brave, Arc).</p>
+            {/* Secondary detail — collapsed by default to keep the page light */}
+            <section className="learn" aria-label="More detail">
+              <details className="disclosure">
+                <summary>
+                  <span className="disclosure__icon" aria-hidden="true"><IconLayers size={18} /></span>
+                  <span className="disclosure__label">How it works — the full flow from scan to clean</span>
+                  <span className="disclosure__chev" aria-hidden="true">›</span>
+                </summary>
+                <div className="disclosure__body">
+                  <ol className="steps">
+                    {STEPS.map((s, i) => (
+                      <li className="step" key={i}>
+                        <span className="step__num" aria-hidden="true">{i + 1}</span>
+                        <h3 className="step__title">{s.title}</h3>
+                        <p className="step__desc">{s.desc}</p>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
+              </details>
 
-                <ol className="install-steps">
-                  <li><b>Download &amp; unzip.</b> Click the button above, then unzip the file. You'll get a folder named <code>duplicate-finder-extension</code>.</li>
-                  <li><b>Open the extensions page.</b> Type or paste <code>chrome://extensions</code> into your browser's address bar and press Enter.</li>
-                  <li><b>Turn on Developer mode.</b> Flip the <b>Developer mode</b> switch in the top-right corner of that page.</li>
-                  <li><b>Load the folder.</b> Click <b>Load unpacked</b> and select the <code>duplicate-finder-extension</code> folder you just unzipped.</li>
-                  <li><b>You're set.</b> "Google Photos Deleter" appears in your list — leave it enabled. The <b>Delete</b> buttons here will now work.</li>
-                </ol>
+              <details className="disclosure">
+                <summary>
+                  <span className="disclosure__icon" aria-hidden="true"><IconInfo size={18} /></span>
+                  <span className="disclosure__label">Good to know — the 2,000 limit &amp; hands-free deleting</span>
+                  <span className="disclosure__chev" aria-hidden="true">›</span>
+                </summary>
+                <div className="disclosure__body">
+                  <div className="callout">
+                    <span className="callout__icon"><IconLayers size={20} /></span>
+                    <div>
+                      <p className="callout__title">Got more than 2,000 photos?</p>
+                      <p className="callout__body">Google Photos lets us pick up to <b>2,000 photos per scan</b>. To clean a larger library, work in batches: scan your first 2,000, delete the duplicates, then scan the next 2,000. Repeat until you've covered everything.</p>
+                      <p className="callout__tip">Tip: go album by album, or oldest-to-newest, so you always know where you left off.</p>
+                    </div>
+                  </div>
 
-                <p className="setup__foot">Keep the unzipped folder somewhere permanent — if you move or delete it, the extension stops working. Prefer not to install anything? You can still scan and review duplicates; you just won't be able to delete from here.</p>
-              </div>
+                  <div className="callout callout--time">
+                    <span className="callout__icon"><IconClock size={20} /></span>
+                    <div>
+                      <p className="callout__title">Deletion runs hands-free — leave it be</p>
+                      <p className="callout__body">Each photo is removed one at a time in the background, so a large batch can take a while. Once it starts, <b>don't touch your computer</b> — no clicking, switching tabs, or letting it sleep — until it finishes, or some photos may be skipped.</p>
+                      <p className="callout__tip">Deleting a big batch? Kick it off before bed and let it run overnight.</p>
+                    </div>
+                  </div>
+                </div>
+              </details>
             </section>
           </div>
         )}
