@@ -10,6 +10,11 @@ const EXTENSION_ID = (typeof window !== 'undefined' && window.EXTENSION_ID) || '
 // (e.g. https://api.yourdomain.com); defaults to the local dev server.
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
+// The helper app is distributed via a GitHub Release: the repo is public and the
+// zip bundles credentials.json, so it can't be served from the site. This "latest"
+// URL always resolves to the newest release's attached zip.
+const HELPER_DOWNLOAD_URL = 'https://github.com/beardbaby/gphotos-cleanse/releases/latest/download/duplicate-finder-helper.zip';
+
 // On-screen "how to use" guide shown on the idle screen. Bold verbs match the
 // real on-screen button labels so the guide and UI stay in lockstep.
 const STEPS = [
@@ -594,7 +599,7 @@ function App() {
                   </div>
                   <h3 className="start-card__title">The app</h3>
                   <p className="start-card__desc">A small app that runs on your computer and does the scanning. Your photos never leave your machine except to Google.</p>
-                  <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-helper.zip`} download>
+                  <a className="btn btn--primary start-card__cta" href={HELPER_DOWNLOAD_URL}>
                     <IconDownload size={17} /> Download the app
                   </a>
                   <p className="start-card__note">Mac &amp; Windows · keep it open while you scan</p>

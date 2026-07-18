@@ -8,7 +8,7 @@ each user runs a small **local helper** that does the scanning and signs into
 The code changes are already done. The steps below are the account-level work
 only you can do.
 
-> **Target URL:** `https://gphotos-cleanse.vercel.app` — the code is wired to this.
+> **Target URL:** `https://photodedup.vercel.app` — the code is wired to this.
 > If you use a different Vercel project name, that URL changes; see
 > **"If your URL is different"** at the bottom.
 
@@ -56,7 +56,7 @@ what the download buttons point to.
 1. Push this project to GitHub (private — see Step 4).
 2. Go to https://vercel.com → **Add New → Project** → import this repo.
 3. Vercel auto-detects Create React App. **Name the project `gphotos-cleanse`** so the
-   URL becomes `https://gphotos-cleanse.vercel.app`. Deploy.
+   URL becomes `https://photodedup.vercel.app`. Deploy.
    - No environment variables needed: the frontend talks to the user's *local*
      helper at `http://localhost:8000` (the built-in default), not to a server.
 
@@ -75,7 +75,7 @@ asset URL. More work; the private-repo route is simpler.)*
 
 ## Step 5 — Test the whole flow yourself
 
-1. Open `https://gphotos-cleanse.vercel.app`.
+1. Open `https://photodedup.vercel.app`.
 2. Download + unzip the **helper**, run `start-helper` (see `code/SETUP.md`).
 3. Download + load the **extension** (`chrome://extensions` → Developer mode →
    Load unpacked).
@@ -91,7 +91,7 @@ scan.* First make sure their Google address is in your **test users** list
 
 ## Where the live URL lives in the code
 
-If your Vercel URL is **not** `gphotos-cleanse.vercel.app`, change it in these two
+If your Vercel URL is **not** `photodedup.vercel.app`, change it in these two
 places, then re-run `bash pack-extension.sh` and redeploy:
 
 | File | What to change |
