@@ -5,8 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#FBF7F2" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1C1815" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FFFFFF" />
     <meta
       name="description"
       content="Find and remove duplicate photos from your Google Photos library."
@@ -17,20 +16,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-    <!-- Apply the saved/system theme before first paint to avoid a flash. -->
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('theme');
-          if (t !== 'light' && t !== 'dark') {
-            t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-          }
-          document.documentElement.setAttribute('data-theme', t);
-        } catch (e) { /* ignore */ }
-      })();
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
 
     <title>Duplicate Finder</title>
   </head>

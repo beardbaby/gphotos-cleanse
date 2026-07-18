@@ -15,27 +15,10 @@ const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 // URL always resolves to the newest release's attached zip.
 const HELPER_DOWNLOAD_URL = 'https://github.com/beardbaby/gphotos-cleanse/releases/latest/download/duplicate-finder-helper.zip';
 
-// On-screen "how to use" guide shown on the idle screen. Bold verbs match the
-// real on-screen button labels so the guide and UI stay in lockstep.
-const STEPS = [
-  { title: 'Start a scan', desc: (<>Hit <b>Scan my photos</b>. We'll open the Google Photos picker in a new tab.</>) },
-  { title: 'Choose your photos', desc: (<>In the picker, select the photos you want to check — up to <b>2,000 at a time</b>.</>) },
-  { title: 'Come back & confirm', desc: (<>Return to this tab and click <b>Done selecting</b>. We'll compare every photo — this takes a few minutes.</>) },
-  { title: 'Review the matches', desc: (<>See two groups: <b>Exact duplicates</b> and <b>Similar photos</b>. Zoom in on any photo to be sure.</>) },
-  { title: 'Keep one, select the rest', desc: (<>Two ways to choose: click <b>individual photos</b> you want gone, or use <b>Select all but one in each</b> to auto-keep one copy from every group.</>) },
-  { title: 'Delete selected', desc: (<>Click <b>Delete selected</b>. The extras move to your Google Photos trash — recoverable for 60 days.</>) },
-];
-
-function getInitialTheme() {
-  try {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-  } catch (e) { /* ignore */ }
-  try {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-  } catch (e) { /* ignore */ }
-  return 'light';
-}
+// Terminal commands users paste to start the helper. Running from a terminal
+// (rather than double-clicking) sidesteps the macOS "unverified" Gatekeeper block.
+const MAC_CMD = 'bash ~/Downloads/duplicate-finder-helper/start-helper.command';
+const WIN_CMD = '"%USERPROFILE%\\Downloads\\duplicate-finder-helper\\start-helper.bat"';
 
 // Pull an "X / Y" ratio out of a backend progress string to drive a
 // determinate bar; returns null when the string has no parseable numbers.
@@ -49,7 +32,7 @@ function parseProgressPct(str) {
   return Math.max(0, Math.min(100, Math.round((done / total) * 100)));
 }
 
-// ---- inline line icons (replace emoji so the UI reads as crafted, not generic) ----
+// ---- inline line icons (kept minimal; monochrome via currentColor) ----
 const svgBase = {
   fill: 'none',
   stroke: 'currentColor',
@@ -63,21 +46,124 @@ const svg = (size, children) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase}>{children}</svg>
 );
 const IconScan = ({ size = 20 }) => svg(size, <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m20 20-4.6-4.6" /></>);
-const IconSun = ({ size = 18 }) => svg(size, <><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" /></>);
-const IconMoon = ({ size = 18 }) => svg(size, <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.6 6.6 0 0 0 11 11Z" />);
 const IconExpand = ({ size = 18 }) => svg(size, <><path d="M15 3h6v6" /><path d="M9 21H3v-6" /><path d="M21 3l-8 8" /><path d="M3 21l8-8" /></>);
 const IconClose = ({ size = 20 }) => svg(size, <><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>);
 const IconCheck = ({ size = 16 }) => svg(size, <path d="M20 6 9 17l-5-5" />);
 const IconWarning = ({ size = 18 }) => svg(size, <><path d="M10.3 3.3 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></>);
-const IconLayers = ({ size = 20 }) => svg(size, <><path d="m12 2 10 5.5-10 5.5L2 7.5 12 2Z" /><path d="m2 12 10 5.5 10-5.5" /><path d="m2 16.5 10 5.5 10-5.5" /></>);
-const IconClock = ({ size = 20 }) => svg(size, <><circle cx="12" cy="12" r="9" /><path d="M12 7.5V12l3 2" /></>);
 const IconCheckCircle = ({ size = 44 }) => svg(size, <><circle cx="12" cy="12" r="9" /><path d="m8.5 12 2.5 2.5 4.5-5" /></>);
 const IconInfo = ({ size = 16 }) => svg(size, <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>);
 const IconDownload = ({ size = 18 }) => svg(size, <><path d="M12 3v12" /><path d="m7 10.5 5 5 5-5" /><path d="M5 21h14" /></>);
-const IconPuzzle = ({ size = 20 }) => svg(size, <path d="M14.5 3.5a2 2 0 1 1 3.8.9h1.7a1 1 0 0 1 1 1v3.1a2 2 0 1 0 0 3.8v3.1a1 1 0 0 1-1 1h-3.1a2 2 0 1 1-3.8 0H10a1 1 0 0 1-1-1v-3.1a2 2 0 1 0 0-3.8V5.4a1 1 0 0 1 1-1h3.1a2 2 0 0 1 .4-1Z" />);
+
+// A monochrome copyable command block.
+function CopyCmd({ os, command }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    try {
+      navigator.clipboard.writeText(command).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      }, () => {});
+    } catch (e) { /* clipboard unavailable */ }
+  }
+  return (
+    <div className="cmd">
+      <span className="cmd__os">{os}</span>
+      <div className="cmd__row">
+        <code className="cmd__text">{command}</code>
+        <button
+          type="button"
+          className={'cmd__copy' + (copied ? ' is-copied' : '')}
+          onClick={copy}
+          aria-label={`Copy command for ${os}`}
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// The "How it works" page — explains the two-stage matching pipeline.
+function AboutPage({ onBack }) {
+  return (
+    <main id="main" className="main about">
+      <header className="about__hero">
+        <p className="about__eyebrow">How it works</p>
+        <h1 className="about__title">Finding duplicates, in two passes.</h1>
+        <p className="about__lead">
+          Duplicate Finder compares your photos entirely on your own computer, using two
+          complementary techniques. The first catches exact and near-exact copies fast; the
+          second understands what a photo actually looks like, to catch the look-alikes the
+          first pass can't.
+        </p>
+      </header>
+
+      <section className="about__stage">
+        <div className="about__stagehead">
+          <span className="about__stagenum">01</span>
+          <h2 className="about__h">Perceptual hashing (pHash)</h2>
+        </div>
+        <p className="about__p">
+          Each image is shrunk to a tiny greyscale thumbnail and run through a <b>discrete cosine
+          transform</b> — the same math behind JPEG. We keep only the low-frequency information,
+          which captures the broad structure of the picture while ignoring fine detail, colour,
+          and compression noise. That produces a compact 64-bit <b>fingerprint</b>.
+        </p>
+        <div className="about__chip">
+          <span>fingerprint</span>
+          <code>1011&nbsp;0100 · 1101&nbsp;0011 · 0110&nbsp;0010 · …</code>
+        </div>
+        <p className="about__p">
+          Two photos that look the same get almost the same fingerprint — even if one was re-saved,
+          resized, or lightly recompressed. We compare fingerprints by <b>Hamming distance</b> (how
+          many bits differ), organised in a BK-tree so it stays fast across thousands of photos.
+          Anything within a few bits is grouped as an <b>exact duplicate</b>.
+        </p>
+        <p className="about__catch">Catches: re-saves, format changes, resizes, screenshots of the same image, minor compression.</p>
+      </section>
+
+      <section className="about__stage">
+        <div className="about__stagehead">
+          <span className="about__stagenum">02</span>
+          <h2 className="about__h">Visual embeddings (DINOv2)</h2>
+        </div>
+        <p className="about__p">
+          Fingerprints can't tell that two <i>different</i> photos are of the same moment — a burst
+          of shots, the same scene re-framed, or an edited copy. For everything the first pass
+          didn't group, we use <b>DINOv2</b>, a vision model from Meta AI trained (without any
+          labels) to understand image content.
+        </p>
+        <p className="about__p">
+          DINOv2 turns each photo into a list of numbers — an <b>embedding</b> — that represents
+          what's in it. Photos of the same subject land close together in that space. We measure
+          the <b>cosine similarity</b> between every pair and group the ones above a high threshold
+          as <b>similar photos</b>.
+        </p>
+        <p className="about__catch">Catches: burst shots, slightly different angles, crops, filters and edits, near-identical moments.</p>
+      </section>
+
+      <section className="about__stage">
+        <div className="about__stagehead">
+          <span className="about__stagenum">·</span>
+          <h2 className="about__h">Why it runs on your machine</h2>
+        </div>
+        <p className="about__p">
+          Both passes happen locally, inside the helper app. Your photos are only ever sent to
+          Google — to fetch the ones you picked — never to us or any third party. Deletion is
+          handled by the browser extension, which moves your chosen copies to the Google Photos
+          trash, where they're recoverable for 60 days.
+        </p>
+      </section>
+
+      <div className="about__foot">
+        <button type="button" className="btn btn--primary" onClick={onBack}>Back to the app</button>
+      </div>
+    </main>
+  );
+}
 
 function App() {
-  const [theme, setTheme] = useState(getInitialTheme);
+  const [view, setView] = useState('home');       // 'home' | 'about'
   const [status, setStatus] = useState('idle');
   const [dupes, setDupes] = useState({ phash: [], dino: [] });
   const [progress, setProgress] = useState('');
@@ -100,13 +186,6 @@ function App() {
   const dinoGroups = dupes.dino || [];
   const scanPct = parseProgressPct(progress);
   const batchRunning = !!(batch && !batch.complete);   // a deletion is in flight
-
-  // Apply the theme. We only PERSIST on an explicit toggle (see toggleTheme) so
-  // a first-load default derived from the OS doesn't pin the app against later
-  // OS light/dark changes.
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   // Announce selection changes politely via the persistent live region.
   useEffect(() => {
@@ -165,13 +244,8 @@ function App() {
     }
   }
 
-  function toggleTheme() {
-    setTheme(t => {
-      const next = t === 'dark' ? 'light' : 'dark';
-      try { localStorage.setItem('theme', next); } catch (e) { /* ignore */ }
-      return next;
-    });
-  }
+  function goHome() { setView('home'); }
+  function goAbout() { setView('about'); window.scrollTo(0, 0); }
 
   function handleScan() {
     setError('');
@@ -187,7 +261,7 @@ function App() {
         setStatus('picking');
       })
       .catch(() => {
-        setError("We couldn't start the scan. Make sure the Duplicate Finder backend is running and reachable, then try again.");
+        setError("We couldn't start the scan. Make sure the Duplicate Finder app is running on your computer, then try again.");
         setStatus('idle');
       });
   }
@@ -211,7 +285,7 @@ function App() {
       })
       .then(() => pollResult(0, pollGenRef.current))
       .catch(() => {
-        setError("We couldn't begin scanning. Check that the backend is running and reachable, then click Done selecting again.");
+        setError("We couldn't begin scanning. Check that the app is running on your computer, then click Done selecting again.");
         setStatus('picking');
       });
   }
@@ -247,7 +321,7 @@ function App() {
               : 'Scan complete — no duplicates found.'
           );
         } else if (data.status === 'error') {
-          setError(`The scan hit a snag. ${data.error || 'Something went wrong'}. Give it another try — if it keeps happening, restart the backend.`);
+          setError(`The scan hit a snag. ${data.error || 'Something went wrong'}. Give it another try — if it keeps happening, restart the app.`);
           setStatus('picking');
           stopPolling();
         } else {
@@ -261,7 +335,7 @@ function App() {
         if (failures < 5) {
           pollTimerRef.current = setTimeout(() => pollResult(failures + 1, gen), 2000);
         } else {
-          setError("We lost the connection mid-scan. Make sure the backend is still running, then start a new scan.");
+          setError("We lost the connection mid-scan. Make sure the app is still running, then start a new scan.");
           setStatus('picking');
           stopPolling();
         }
@@ -540,296 +614,250 @@ function App() {
       <div className="sr-only" role="alert" aria-live="assertive" aria-atomic="true">{liveAssertive}</div>
 
       <header className="app-header">
-        <h1 className="brand">
+        <button type="button" className="brand" onClick={goHome} aria-label="Duplicate Finder — home">
           <span className="brand__mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <rect x="7" y="6" width="12" height="12" rx="3" fill="currentColor" opacity="0.5" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="7" y="6" width="12" height="12" rx="3" fill="currentColor" opacity="0.45" />
               <rect x="4" y="9" width="12" height="11" rx="3" fill="currentColor" />
             </svg>
           </span>
-          <span className="brand__name">Duplicate <b>Finder</b></span>
-        </h1>
-        <button
-          type="button"
-          className="theme-toggle"
-          role="switch"
-          aria-checked={theme === 'dark'}
-          aria-label="Dark theme"
-          onClick={toggleTheme}
-        >
-          <span className="theme-toggle__thumb" aria-hidden="true">{theme === 'dark' ? <IconMoon size={15} /> : <IconSun size={15} />}</span>
+          <span className="brand__name">Duplicate Finder</span>
         </button>
+        <nav className="nav" aria-label="Primary">
+          <button type="button" className="nav__link" aria-current={view === 'home' ? 'page' : undefined} onClick={goHome}>Home</button>
+          <button type="button" className="nav__link" aria-current={view === 'about' ? 'page' : undefined} onClick={goAbout}>How it works</button>
+        </nav>
       </header>
 
-      <main id="main" className="main">
-        {error && (
-          <div className="error-banner" role="alert">
-            <span className="error-banner__icon"><IconWarning size={18} /></span>
-            <span className="error-banner__msg">{error}</span>
-            <button type="button" className="icon-btn icon-btn--bare" aria-label="Dismiss error" onClick={() => setError('')}>
-              <IconClose size={16} />
-            </button>
-          </div>
-        )}
-
-        {status === 'idle' && (
-          <div className="idle">
-            <section className="hero">
-              <h2 className="hero__title">Your library, <em>minus the doubles.</em></h2>
-              <p className="hero__sub">Scan your Google Photos, review the duplicates and look-alikes we find, and clear the clutter — one keeper stays, every time.</p>
-              <button type="button" className="btn btn--primary btn--hero" onClick={handleScan}>
-                <IconScan size={22} /> Scan my photos
+      {view === 'about' ? (
+        <AboutPage onBack={goHome} />
+      ) : (
+        <main id="main" className="main">
+          {error && (
+            <div className="error-banner" role="alert">
+              <span className="error-banner__icon"><IconWarning size={18} /></span>
+              <span className="error-banner__msg">{error}</span>
+              <button type="button" className="icon-btn icon-btn--bare" aria-label="Dismiss error" onClick={() => setError('')}>
+                <IconClose size={16} />
               </button>
-              <p className="hero__reassure">Free &amp; private — photos are compared on your own computer. Nothing is deleted until you say so, and deletions go to your Google Photos trash (recoverable for 60 days).</p>
-            </section>
-
-            {/* The two one-time installs, right below the scan button */}
-            <section className="start" aria-labelledby="start-title">
-              <div className="start__head">
-                <p className="eyebrow">First time here?</p>
-                <h2 id="start-title" className="start__title">Install these two before your first scan</h2>
-                <p className="start__sub">Both are free and one-time — setup takes a couple of minutes.</p>
-              </div>
-
-              <div className="start__grid">
-                <div className="start-card">
-                  <div className="start-card__head">
-                    <span className="start-card__num">1</span>
-                    <span className="start-card__badge" aria-hidden="true"><IconDownload size={20} /></span>
-                  </div>
-                  <h3 className="start-card__title">The app</h3>
-                  <p className="start-card__desc">A small app that runs on your computer and does the scanning. Your photos never leave your machine except to Google.</p>
-                  <a className="btn btn--primary start-card__cta" href={HELPER_DOWNLOAD_URL}>
-                    <IconDownload size={17} /> Download the app
-                  </a>
-                  <p className="start-card__note">Mac &amp; Windows · keep it open while you scan</p>
-                  <details className="start-card__more">
-                    <summary>How to install</summary>
-                    <ol className="mini-steps">
-                      <li>Unzip it — you'll get a <code>duplicate-finder-helper</code> folder. Keep it somewhere permanent.</li>
-                      <li><b>Windows:</b> double-click <code>start-helper.bat</code>. <b>Mac:</b> open Terminal and run <code>bash ~/Downloads/duplicate-finder-helper/start-helper.command</code> (running it from Terminal avoids the macOS security prompt).</li>
-                      <li>The first launch sets things up (a few minutes, once). Leave the window open, then sign in when you scan.</li>
-                    </ol>
-                  </details>
-                </div>
-
-                <div className="start-card">
-                  <div className="start-card__head">
-                    <span className="start-card__num">2</span>
-                    <span className="start-card__badge" aria-hidden="true"><IconPuzzle size={20} /></span>
-                  </div>
-                  <h3 className="start-card__title">The extension</h3>
-                  <p className="start-card__desc">A small Chrome add-on that moves the copies you pick to your Google Photos trash. Needed only for deleting.</p>
-                  <a className="btn btn--primary start-card__cta" href={`${process.env.PUBLIC_URL}/duplicate-finder-extension.zip`} download>
-                    <IconDownload size={17} /> Download the extension
-                  </a>
-                  <p className="start-card__note">Chrome, Edge, Brave &amp; Arc</p>
-                  <details className="start-card__more">
-                    <summary>How to install</summary>
-                    <ol className="mini-steps">
-                      <li>Unzip it — you'll get a <code>duplicate-finder-extension</code> folder. Keep it somewhere permanent.</li>
-                      <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top-right).</li>
-                      <li>Click <b>Load unpacked</b> and pick the unzipped folder. Leave it enabled.</li>
-                    </ol>
-                  </details>
-                </div>
-              </div>
-            </section>
-
-            <div className="demo" role="img" aria-label="Animation: three duplicate photos are grouped, one is kept, and the extras are removed, leaving a single photo.">
-              <div className="demo__stage" aria-hidden="true">
-                <div className="demo__tile extra e1" />
-                <div className="demo__tile keeper"><span className="demo__badge"><IconCheck size={15} /></span></div>
-                <div className="demo__tile extra e2" />
-                <span className="demo__pill">Deleted ✓</span>
-              </div>
-              <p className="demo__caption" aria-hidden="true">Keep one — delete the rest.</p>
             </div>
+          )}
 
-            {/* Secondary detail — collapsed by default to keep the page light */}
-            <section className="learn" aria-label="More detail">
-              <details className="disclosure">
-                <summary>
-                  <span className="disclosure__icon" aria-hidden="true"><IconLayers size={18} /></span>
-                  <span className="disclosure__label">How it works — the full flow from scan to clean</span>
-                  <span className="disclosure__chev" aria-hidden="true">›</span>
-                </summary>
-                <div className="disclosure__body">
-                  <ol className="steps">
-                    {STEPS.map((s, i) => (
-                      <li className="step" key={i}>
-                        <span className="step__num" aria-hidden="true">{i + 1}</span>
-                        <h3 className="step__title">{s.title}</h3>
-                        <p className="step__desc">{s.desc}</p>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </details>
+          {status === 'idle' && (
+            <div className="home">
+              <section className="hero">
+                <h1 className="hero__title">Clean the duplicates out of your Google Photos.</h1>
+                <p className="hero__sub">Scan your library, review exact duplicates and look-alikes side by side, and keep just one of each.</p>
+                <button type="button" className="btn btn--primary btn--hero" onClick={handleScan}>
+                  <IconScan size={20} /> Scan my photos
+                </button>
+                <p className="hero__note">Free · runs on your own computer · deletions are recoverable for 60 days</p>
 
-              <details className="disclosure">
-                <summary>
-                  <span className="disclosure__icon" aria-hidden="true"><IconInfo size={18} /></span>
-                  <span className="disclosure__label">Good to know — the 2,000 limit &amp; hands-free deleting</span>
-                  <span className="disclosure__chev" aria-hidden="true">›</span>
-                </summary>
-                <div className="disclosure__body">
-                  <div className="callout">
-                    <span className="callout__icon"><IconLayers size={20} /></span>
-                    <div>
-                      <p className="callout__title">Got more than 2,000 photos?</p>
-                      <p className="callout__body">Google Photos lets us pick up to <b>2,000 photos per scan</b>. To clean a larger library, work in batches: scan your first 2,000, delete the duplicates, then scan the next 2,000. Repeat until you've covered everything.</p>
-                      <p className="callout__tip">Tip: go album by album, or oldest-to-newest, so you always know where you left off.</p>
-                    </div>
-                  </div>
-
-                  <div className="callout callout--time">
-                    <span className="callout__icon"><IconClock size={20} /></span>
-                    <div>
-                      <p className="callout__title">Deletion runs hands-free — leave it be</p>
-                      <p className="callout__body">Each photo is removed one at a time in the background, so a large batch can take a while. Once it starts, <b>don't touch your computer</b> — no clicking, switching tabs, or letting it sleep — until it finishes, or some photos may be skipped.</p>
-                      <p className="callout__tip">Deleting a big batch? Kick it off before bed and let it run overnight.</p>
-                    </div>
+                <div className="demo" role="img" aria-label="Two matching photos collapse into one; the duplicates are removed and a single photo is kept.">
+                  <div className="demo__row" aria-hidden="true">
+                    <span className="demo__tile d1" />
+                    <span className="demo__tile d2" />
+                    <span className="demo__tile keep"><IconCheck size={18} /></span>
                   </div>
                 </div>
-              </details>
-            </section>
-          </div>
-        )}
-
-        {status === 'starting' && (
-          <div className="status-card">
-            <div className="spinner" aria-hidden="true" />
-            <h2 className="status-card__title">Opening Google Photos…</h2>
-            <p className="status-card__sub">A new tab is opening so you can pick your photos. If it doesn't appear, check that pop-ups are allowed for this site.</p>
-          </div>
-        )}
-
-        {status === 'picking' && (
-          <div className="status-card">
-            <h2 className="status-card__title">Select your photos</h2>
-            <p className="status-card__sub">In the Google Photos tab, choose up to <b>2,000 photos</b> to check — then come back here and click <b>Done selecting</b>.</p>
-            <button type="button" className="btn btn--primary btn--lg" onClick={handleDone}>Done selecting</button>
-          </div>
-        )}
-
-        {status === 'loading' && (
-          <div className="status-card" aria-busy="true">
-            <div className="spinner" aria-hidden="true" />
-            <h2 className="status-card__title">Scanning your photos</h2>
-            <p className="status-card__sub">We're comparing each photo for matches. This can take a few minutes for a large batch — you can leave this tab open and check back.</p>
-            {progress && <div className="progress-pill">{progress}</div>}
-            {scanPct != null && (
-              <div
-                className="scan-bar"
-                role="progressbar"
-                aria-label="Scanning photos"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={scanPct}
-                aria-valuetext={progress}
-              >
-                <div className="scan-bar__fill" style={{ width: `${scanPct}%` }} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {status === 'done' && (
-          <div>
-            {phashGroups.length === 0 && dinoGroups.length === 0 && (
-              <div className="empty">
-                <div className="empty__icon"><IconCheckCircle size={44} /></div>
-                <h2 className="empty__title">No duplicates found</h2>
-                <p className="empty__sub">Every photo in this batch looks one-of-a-kind. Want to check more? Run a scan with your next 2,000.</p>
-                <button type="button" className="btn btn--outline" onClick={handleScan}>Scan more photos</button>
-              </div>
-            )}
-
-            {(phashGroups.length > 0 || dinoGroups.length > 0) && (
-              <div className="results-tip">
-                <span className="results-tip__icon"><IconInfo size={16} /></span>
-                <span>Select the copies to remove — click <b>individual photos</b>, or use <b>Select all but one in each</b> to keep one from every group. One copy always stays.</span>
-              </div>
-            )}
-
-            {phashGroups.length > 0 && (
-              <section className="section" aria-labelledby="phash-h">
-                <div className="section__head">
-                  <div className="section__titles">
-                    <h2 className="section__title" id="phash-h">Exact duplicates</h2>
-                    <p className="section__sub">Pixel-for-pixel copies. These are true duplicates — keep one, delete the rest with confidence.</p>
-                  </div>
-                  <span className="count-badge">{phashGroups.length} {phashGroups.length === 1 ? 'group' : 'groups'}</span>
-                  <button type="button" className="btn btn--outline btn--sm" onClick={selectAllButOnePhash}>Select all but one in each</button>
-                </div>
-                {phashGroups.map((group, i) => renderGroup(group, `phash-${i}`, i))}
               </section>
-            )}
 
-            {dinoGroups.length > 0 && (
-              <section className="section section--similar" aria-labelledby="dino-h">
-                <div className="section__head">
-                  <div className="section__titles">
-                    <h2 className="section__title" id="dino-h">Similar photos</h2>
-                    <p className="section__sub">Near-identical shots — bursts, edits, or re-saves. Not exact copies, so glance at each before you delete.</p>
-                  </div>
-                  <span className="count-badge">{dinoGroups.length} {dinoGroups.length === 1 ? 'group' : 'groups'}</span>
-                </div>
-                {dinoGroups.map((group, i) => renderGroup(group, `dino-${i}`, i))}
-              </section>
-            )}
+              <section className="setup" aria-labelledby="setup-h">
+                <h2 id="setup-h" className="setup__title">Before your first scan</h2>
+                <p className="setup__sub">Two quick, one-time installs. Follow along — it takes a couple of minutes.</p>
 
-            {(phashGroups.length > 0 || dinoGroups.length > 0) && (
-              <div className="done-footer">
-                <p className="done-footer__text">Cleaned this batch? Google Photos caps each scan at 2,000 photos — scan your next batch to keep going.</p>
-                <button type="button" className="btn btn--outline" onClick={handleScan}>Scan more photos</button>
-              </div>
-            )}
-
-            {(batch || selectedCount > 0) && (
-              <section className="bottom-stack" aria-label="Selection and deletion actions">
-                {batch && (
-                  batch.complete ? (
-                    <div className="progress-toast is-complete">
-                      <span className="complete-check" aria-hidden="true"><IconCheck size={15} /></span>
-                      <span className="progress-toast__label">
-                        All {batch.total} {batch.total === 1 ? 'photo' : 'photos'} deleted
-                      </span>
-                      <button type="button" className="btn btn--ghost btn--sm" aria-label="Close deletion summary" onClick={() => setBatch(null)}>Close</button>
-                    </div>
-                  ) : (
-                    <div className="progress-toast">
-                      <span className="progress-toast__label">
-                        Deleting {Math.min(batch.done + 1, batch.total)} of {batch.total}…
-                      </span>
-                      <div
-                        className="progress-toast__track"
-                        role="progressbar"
-                        aria-label="Deleting selected photos"
-                        aria-valuemin={0}
-                        aria-valuemax={batch.total}
-                        aria-valuenow={batch.done}
-                        aria-valuetext={`Deleting ${Math.min(batch.done + 1, batch.total)} of ${batch.total}`}
-                      >
-                        <div className="progress-toast__fill" style={{ width: `${(batch.done / batch.total) * 100}%` }} />
+                <ol className="setup__list">
+                  <li className="setup-step">
+                    <div className="setup-step__num">1</div>
+                    <div className="setup-step__body">
+                      <h3 className="setup-step__title">Download &amp; run the app</h3>
+                      <p className="setup-step__desc">This small app runs on your computer and does the scanning. Download it, unzip it to your Downloads folder, then start it from your terminal.</p>
+                      <a className="btn btn--primary" href={HELPER_DOWNLOAD_URL}>
+                        <IconDownload size={17} /> Download the app
+                      </a>
+                      <div className="setup-step__cmds">
+                        <p className="setup-step__cue">Then start it — open your terminal and paste one line:</p>
+                        <CopyCmd os="macOS — open Terminal" command={MAC_CMD} />
+                        <CopyCmd os="Windows — open Command Prompt" command={WIN_CMD} />
+                        <p className="setup-step__fine">
+                          The first run installs what it needs (a few minutes, one time). Keep the window open, and sign in with Google when you scan.
+                          <span>Running it from the terminal is what avoids the macOS "unverified developer" prompt.</span>
+                        </p>
                       </div>
                     </div>
-                  )
-                )}
+                  </li>
 
-                {selectedCount > 0 && (
-                  <div className="action-bar">
-                    <span className="action-bar__count"><b>{selectedCount}</b> selected</span>
-                    <button type="button" className="btn btn--danger btn--sm" disabled={batchRunning} onClick={handleDeleteSelected}>Delete selected</button>
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelected({})}>Clear</button>
-                  </div>
-                )}
+                  <li className="setup-step">
+                    <div className="setup-step__num">2</div>
+                    <div className="setup-step__body">
+                      <h3 className="setup-step__title">Add the browser extension</h3>
+                      <p className="setup-step__desc">Needed only for deleting — it moves the copies you pick to your Google Photos trash. Works in Chrome, Edge, Brave and Arc.</p>
+                      <a className="btn btn--primary" href={`${process.env.PUBLIC_URL}/duplicate-finder-extension.zip`} download>
+                        <IconDownload size={17} /> Download the extension
+                      </a>
+                      <ol className="mini-steps">
+                        <li>Unzip it to get a <code>duplicate-finder-extension</code> folder — keep it somewhere permanent.</li>
+                        <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top-right).</li>
+                        <li>Click <b>Load unpacked</b> and select that folder. Leave it enabled.</li>
+                      </ol>
+                    </div>
+                  </li>
+                </ol>
+
+                <p className="setup__foot">Curious how the matching works? <button type="button" className="link" onClick={goAbout}>See how it works →</button></p>
               </section>
-            )}
-          </div>
-        )}
-      </main>
+
+              <section className="notes" aria-label="Good to know">
+                <div className="note">
+                  <span className="note__k">2,000 per scan</span>
+                  <span className="note__v">Google caps each pick at 2,000 photos — clean a large library in batches.</span>
+                </div>
+                <div className="note">
+                  <span className="note__k">Hands-free delete</span>
+                  <span className="note__v">Deletes run one at a time in the background — don't touch your computer until it finishes.</span>
+                </div>
+                <div className="note">
+                  <span className="note__k">Recoverable</span>
+                  <span className="note__v">Deleted photos sit in your Google Photos trash for 60 days.</span>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {status === 'starting' && (
+            <div className="status-card">
+              <div className="spinner" aria-hidden="true" />
+              <h2 className="status-card__title">Opening Google Photos…</h2>
+              <p className="status-card__sub">A new tab is opening so you can pick your photos. If it doesn't appear, check that pop-ups are allowed for this site.</p>
+            </div>
+          )}
+
+          {status === 'picking' && (
+            <div className="status-card">
+              <h2 className="status-card__title">Select your photos</h2>
+              <p className="status-card__sub">In the Google Photos tab, choose up to <b>2,000 photos</b> to check — then come back here and click <b>Done selecting</b>.</p>
+              <button type="button" className="btn btn--primary btn--lg" onClick={handleDone}>Done selecting</button>
+            </div>
+          )}
+
+          {status === 'loading' && (
+            <div className="status-card" aria-busy="true">
+              <div className="spinner" aria-hidden="true" />
+              <h2 className="status-card__title">Scanning your photos</h2>
+              <p className="status-card__sub">We're comparing each photo for matches. This can take a few minutes for a large batch — you can leave this tab open and check back.</p>
+              {progress && <div className="progress-pill">{progress}</div>}
+              {scanPct != null && (
+                <div
+                  className="scan-bar"
+                  role="progressbar"
+                  aria-label="Scanning photos"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={scanPct}
+                  aria-valuetext={progress}
+                >
+                  <div className="scan-bar__fill" style={{ width: `${scanPct}%` }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {status === 'done' && (
+            <div>
+              {phashGroups.length === 0 && dinoGroups.length === 0 && (
+                <div className="empty">
+                  <div className="empty__icon"><IconCheckCircle size={40} /></div>
+                  <h2 className="empty__title">No duplicates found</h2>
+                  <p className="empty__sub">Every photo in this batch looks one-of-a-kind. Want to check more? Run a scan with your next 2,000.</p>
+                  <button type="button" className="btn btn--outline" onClick={handleScan}>Scan more photos</button>
+                </div>
+              )}
+
+              {(phashGroups.length > 0 || dinoGroups.length > 0) && (
+                <div className="results-tip">
+                  <span className="results-tip__icon"><IconInfo size={16} /></span>
+                  <span>Select the copies to remove — click <b>individual photos</b>, or use <b>Select all but one in each</b> to keep one from every group. One copy always stays.</span>
+                </div>
+              )}
+
+              {phashGroups.length > 0 && (
+                <section className="section" aria-labelledby="phash-h">
+                  <div className="section__head">
+                    <div className="section__titles">
+                      <h2 className="section__title" id="phash-h">Exact duplicates</h2>
+                      <p className="section__sub">Pixel-for-pixel copies. These are true duplicates — keep one, delete the rest with confidence.</p>
+                    </div>
+                    <span className="count-badge">{phashGroups.length} {phashGroups.length === 1 ? 'group' : 'groups'}</span>
+                    <button type="button" className="btn btn--outline btn--sm" onClick={selectAllButOnePhash}>Select all but one in each</button>
+                  </div>
+                  {phashGroups.map((group, i) => renderGroup(group, `phash-${i}`, i))}
+                </section>
+              )}
+
+              {dinoGroups.length > 0 && (
+                <section className="section section--similar" aria-labelledby="dino-h">
+                  <div className="section__head">
+                    <div className="section__titles">
+                      <h2 className="section__title" id="dino-h">Similar photos</h2>
+                      <p className="section__sub">Near-identical shots — bursts, edits, or re-saves. Not exact copies, so glance at each before you delete.</p>
+                    </div>
+                    <span className="count-badge">{dinoGroups.length} {dinoGroups.length === 1 ? 'group' : 'groups'}</span>
+                  </div>
+                  {dinoGroups.map((group, i) => renderGroup(group, `dino-${i}`, i))}
+                </section>
+              )}
+
+              {(phashGroups.length > 0 || dinoGroups.length > 0) && (
+                <div className="done-footer">
+                  <p className="done-footer__text">Cleaned this batch? Google Photos caps each scan at 2,000 photos — scan your next batch to keep going.</p>
+                  <button type="button" className="btn btn--outline" onClick={handleScan}>Scan more photos</button>
+                </div>
+              )}
+
+              {(batch || selectedCount > 0) && (
+                <section className="bottom-stack" aria-label="Selection and deletion actions">
+                  {batch && (
+                    batch.complete ? (
+                      <div className="progress-toast is-complete">
+                        <span className="complete-check" aria-hidden="true"><IconCheck size={15} /></span>
+                        <span className="progress-toast__label">
+                          All {batch.total} {batch.total === 1 ? 'photo' : 'photos'} deleted
+                        </span>
+                        <button type="button" className="btn btn--ghost btn--sm" aria-label="Close deletion summary" onClick={() => setBatch(null)}>Close</button>
+                      </div>
+                    ) : (
+                      <div className="progress-toast">
+                        <span className="progress-toast__label">
+                          Deleting {Math.min(batch.done + 1, batch.total)} of {batch.total}…
+                        </span>
+                        <div
+                          className="progress-toast__track"
+                          role="progressbar"
+                          aria-label="Deleting selected photos"
+                          aria-valuemin={0}
+                          aria-valuemax={batch.total}
+                          aria-valuenow={batch.done}
+                          aria-valuetext={`Deleting ${Math.min(batch.done + 1, batch.total)} of ${batch.total}`}
+                        >
+                          <div className="progress-toast__fill" style={{ width: `${(batch.done / batch.total) * 100}%` }} />
+                        </div>
+                      </div>
+                    )
+                  )}
+
+                  {selectedCount > 0 && (
+                    <div className="action-bar">
+                      <span className="action-bar__count"><b>{selectedCount}</b> selected</span>
+                      <button type="button" className="btn btn--danger btn--sm" disabled={batchRunning} onClick={handleDeleteSelected}>Delete selected</button>
+                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelected({})}>Clear</button>
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          )}
+        </main>
+      )}
 
       {zoom && (
         <div
