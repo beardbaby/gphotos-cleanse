@@ -20,23 +20,29 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM First-time setup: isolated environment + dependencies.
+REM Create the isolated environment on first run.
 if not exist ".venv" (
   echo.
-  echo First-time setup: installing dependencies ^(this can take a few minutes
-  echo and downloads ~1 GB - only happens once^). Please wait...
+  echo First-time setup: creating environment and installing dependencies ^(this
+  echo can take a few minutes and downloads ~1 GB - only happens once^). Please wait...
   echo.
   python -m venv .venv
   ".venv\Scripts\python" -m pip install --upgrade pip
-  ".venv\Scripts\pip" install -r requirements.txt
-  if errorlevel 1 (
-    echo.
-    echo Dependency install failed. If it failed on "torch", install the right
-    echo version from https://pytorch.org, then run this again.
-    echo.
-    pause
-    exit /b 1
-  )
+) else (
+  echo.
+  echo Checking dependencies...
+)
+
+REM Always make sure the listed dependencies are present. This is fast when
+REM nothing is missing, and self-heals when a new version adds a package.
+".venv\Scripts\pip" install -r requirements.txt
+if errorlevel 1 (
+  echo.
+  echo Dependency install failed. If it failed on "torch", install the right
+  echo version from https://pytorch.org, then run this again.
+  echo.
+  pause
+  exit /b 1
 )
 
 echo.

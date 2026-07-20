@@ -26,22 +26,28 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
-# First-time setup: isolated environment + dependencies.
+# Create the isolated environment on first run.
 if [ ! -d ".venv" ]; then
   echo
-  echo "First-time setup: installing dependencies (this can take a few minutes"
-  echo "and downloads ~1 GB — only happens once). Please wait..."
+  echo "First-time setup: creating environment and installing dependencies (this"
+  echo "can take a few minutes and downloads ~1 GB — only happens once). Please wait..."
   echo
   python3 -m venv .venv
   ./.venv/bin/python -m pip install --upgrade pip
-  if ! ./.venv/bin/pip install -r requirements.txt; then
-    echo
-    echo "Dependency install failed. If it failed on 'torch', install the right"
-    echo "version for your Mac from https://pytorch.org, then run this again."
-    echo
-    read -n 1 -s -r -p "Press any key to close..."
-    exit 1
-  fi
+else
+  echo
+  echo "Checking dependencies…"
+fi
+
+# Always make sure the listed dependencies are present. This is fast when nothing
+# is missing, and self-heals when a new version adds a package (e.g. torchvision).
+if ! ./.venv/bin/pip install -r requirements.txt; then
+  echo
+  echo "Dependency install failed. If it failed on 'torch', install the right"
+  echo "version for your Mac from https://pytorch.org, then run this again."
+  echo
+  read -n 1 -s -r -p "Press any key to close..."
+  exit 1
 fi
 
 echo

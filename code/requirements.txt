@@ -11,6 +11,9 @@ ImageHash>=4.3.2
 pybktree>=1.1
 numpy>=2.4.6
 torch>=2.12.1
+# torchvision is required by transformers' AutoImageProcessor (the DINOv2 stage).
+# Left unpinned so pip resolves the build that matches the installed torch.
+torchvision
 transformers>=5.12.1
 google-auth>=2.53.0
 google-auth-oauthlib>=1.2.0
